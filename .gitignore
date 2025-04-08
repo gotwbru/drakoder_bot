@@ -1,0 +1,20 @@
+# Node
+node_modules/
+.env
+npm-debug.log
+package-lock.json
+
+# Python
+__pycache__/
+*.pyc
+.env
+venv/
+*.db
+
+# Streamlit
+.streamlit/
+.mypy_cache/
+
+# Logs e arquivos temporários
+*.log
+mensagens.json
