@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import mysql.connector
@@ -89,6 +90,7 @@ with aba3:
 
     df_merged = pd.merge(df_solic, df_resp, on='nota_fiscal', how='left', suffixes=('_solic', '_resp'))
     df_merged['tempo_resposta'] = pd.to_datetime(df_merged['data_resposta'], errors='coerce') - pd.to_datetime(df_merged['data_solicitacao'], errors='coerce')
+    df_merged['tempo_resposta'] = df_merged['tempo_resposta'].apply(lambda x: abs(x) if pd.notnull(x) else x)
 
     tempo_medio = df_merged['tempo_resposta'].dropna().mean()
     st.metric("⏱️ Tempo médio de resposta", str(tempo_medio).split('.')[0] if not pd.isna(tempo_medio) else "N/A")
