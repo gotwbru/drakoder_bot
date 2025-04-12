@@ -25,6 +25,23 @@ def conectar():
         print(f"❌ Erro de conexão com o banco: {err}")
         return None
 
+# Limpa espaços invisíveis e caracteres especiais ocultos
+def limpar_texto(valor):
+    if isinstance(valor, str):
+        return valor.replace('\xa0', ' ').replace('\u200b', '').strip()
+    return valor
+
+# Garante que o campo 'fornecedor_na_loja' esteja 100% limpo e padronizado
+def normalizar_fornecedor_na_loja(valor):
+    if not isinstance(valor, str):
+        return valor
+    valor = valor.replace('\xa0', ' ').replace('\u200b', '').strip().lower()
+    if valor.startswith('sim'):
+        return 'Sim'
+    elif valor.startswith('não') or valor.startswith('nao'):
+        return 'Não'
+    return ''
+
 def processar_mensagens():
     if not os.path.exists(ARQUIVO_JSON):
         print("⚠️ Arquivo mensagens.json não encontrado.")
@@ -49,6 +66,10 @@ def processar_mensagens():
     for item in mensagens:
         tipo = item.get('tipo')
         dados = item.get('dados', {})
+
+        # Limpeza de todos os campos de texto
+        dados = {k: limpar_texto(v) for k, v in dados.items()}
+        dados['fornecedor_na_loja'] = normalizar_fornecedor_na_loja(dados.get('fornecedor_na_loja', ''))
 
         if tipo == 'solicitacao':
             data_solicitacao = dados.get('data_solicitacao')
@@ -101,17 +122,18 @@ def processar_mensagens():
 
                 sql = """
                     INSERT INTO respostas (
-                        nota_fiscal, status, data_resposta, solicitacao_id
-                    ) VALUES (%s, %s, %s, %s)
+                        nota_fiscal, status, data_resposta, solicitacao_id, respondido_por
+                    ) VALUES (%s, %s, %s, %s, %s)
                 """
                 valores = (
                     dados.get('nota_fiscal', ''),
                     dados.get('status', ''),
                     data_resposta,
-                    solicitacao_id
+                    solicitacao_id,
+                    dados.get('respondido_por', 'Não identificado')
                 )
                 cursor.execute(sql, valores)
-                print(f"✅ Resposta inserida: NF {dados.get('nota_fiscal')}")
+                print(f"✅ Resposta inserida: NF {dados.get('nota_fiscal')} | Respondido por: {dados.get('respondido_por', 'Não identificado')}")
             except Exception as e:
                 print(f"❌ Erro ao inserir resposta: {e}")
 

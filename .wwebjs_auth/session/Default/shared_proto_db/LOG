@@ -1,2 +1,3 @@
-2025/04/08-07:16:43.621 3620 Creating DB C:\Users\bruna\OneDrive\Documentos\PROJETO PEDIDOS\protipo-pedido\.wwebjs_auth\session\Default\shared_proto_db since it was missing.
-2025/04/08-07:16:43.626 3620 Reusing MANIFEST C:\Users\bruna\OneDrive\Documentos\PROJETO PEDIDOS\protipo-pedido\.wwebjs_auth\session\Default\shared_proto_db/MANIFEST-000001
+2025/04/11-07:41:37.035 1d68 Reusing MANIFEST C:\Users\bruna\OneDrive\Documentos\PROJETO PEDIDOS\protipo-pedido\.wwebjs_auth\session\Default\shared_proto_db/MANIFEST-000001
+2025/04/11-07:41:37.043 1d68 Recovering log #3
+2025/04/11-07:41:37.043 1d68 Reusing old log C:\Users\bruna\OneDrive\Documentos\PROJETO PEDIDOS\protipo-pedido\.wwebjs_auth\session\Default\shared_proto_db/000003.log 

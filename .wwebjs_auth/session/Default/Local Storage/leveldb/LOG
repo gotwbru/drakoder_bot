@@ -1,6 +1,6 @@
-2025/04/08-16:06:12.562 280 Reusing MANIFEST C:\Users\bruna\OneDrive\Documentos\PROJETO PEDIDOS\protipo-pedido\.wwebjs_auth\session\Default\Local Storage\leveldb/MANIFEST-000001
-2025/04/08-16:06:12.563 280 Recovering log #4
-2025/04/08-16:06:12.564 280 Reusing old log C:\Users\bruna\OneDrive\Documentos\PROJETO PEDIDOS\protipo-pedido\.wwebjs_auth\session\Default\Local Storage\leveldb/000004.log 
-2025/04/08-17:36:26.712 1a28 Level-0 table #8: started
-2025/04/08-17:36:26.722 1a28 Level-0 table #8: 17042 bytes OK
-2025/04/08-17:36:26.723 1a28 Delete type=0 #4
+2025/04/11-07:05:31.363 2b50 Reusing MANIFEST C:\Users\bruna\OneDrive\Documentos\PROJETO PEDIDOS\protipo-pedido\.wwebjs_auth\session\Default\Local Storage\leveldb/MANIFEST-000001
+2025/04/11-07:05:31.379 2b50 Recovering log #22
+2025/04/11-07:05:31.380 2b50 Reusing old log C:\Users\bruna\OneDrive\Documentos\PROJETO PEDIDOS\protipo-pedido\.wwebjs_auth\session\Default\Local Storage\leveldb/000022.log 
+2025/04/11-11:25:49.932 4120 Level-0 table #26: started
+2025/04/11-11:25:49.936 4120 Level-0 table #26: 16343 bytes OK
+2025/04/11-11:25:49.938 4120 Delete type=0 #22

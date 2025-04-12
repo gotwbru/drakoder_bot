@@ -44,10 +44,15 @@ function salvarMensagem(tipo, dados) {
     console.log('📄 mensagens.json atualizado:', JSON.stringify(mensagens, null, 2));
 }
 
-// Função auxiliar para extrair valores
+// Função auxiliar para extrair valores com normalização
 function pegarValor(linhas, chave) {
-    const linha = linhas.find(l => l.startsWith(chave));
-    return linha ? linha.replace(chave, '').trim() : '';
+    const linha = linhas.find(l => removerEspacosInvisiveis(l).startsWith(removerEspacosInvisiveis(chave)));
+    return linha ? removerEspacosInvisiveis(linha.replace(chave, '').trim()) : '';
+}
+
+// Remove espaços invisíveis como \xa0 ou similares
+function removerEspacosInvisiveis(texto) {
+    return texto.replace(/\s+/g, ' ').replace(/\u00a0/g, ' ').trim();
 }
 
 // Extrai dados da solicitação
@@ -67,11 +72,12 @@ function extrairSolicitacao(texto) {
 }
 
 // Extrai dados da resposta
-function extrairResposta(texto) {
+function extrairResposta(texto, remetente) {
     const linhas = texto.split('\n').map(l => l.trim());
     return {
         nota_fiscal: pegarValor(linhas, 'Nota Fiscal:'),
-        status: pegarValor(linhas, 'Status:')
+        status: pegarValor(linhas, 'Status:'),
+        respondido_por: remetente
     };
 }
 
@@ -81,6 +87,7 @@ client.on('message', async (msg) => {
 
     const textoOriginal = msg.body.trim();
     const textoPadronizado = textoOriginal.toLowerCase();
+    const remetente = msg._data.notifyName || msg._data.pushName || 'Desconhecido';
 
     if (textoPadronizado.startsWith('solicitação de pedido')) {
         const dados = extrairSolicitacao(textoOriginal);
@@ -88,7 +95,7 @@ client.on('message', async (msg) => {
         console.log('📥 Solicitação registrada:', dados);
     }
     else if (textoPadronizado.startsWith('resposta comercial')) {
-        const dados = extrairResposta(textoOriginal);
+        const dados = extrairResposta(textoOriginal, remetente);
         salvarMensagem('resposta', dados);
         console.log('📥 Resposta registrada:', dados);
     }    

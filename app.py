@@ -32,6 +32,10 @@ if 'data_solicitacao' in df_solic.columns:
     df_solic['data_solicitacao'] = pd.to_datetime(df_solic['data_solicitacao'], errors='coerce')
     df_solic['dia'] = df_solic['data_solicitacao'].dt.date
 
+# Garantir que data_resposta esteja no formato datetime
+if 'data_resposta' in df_resp.columns:
+    df_resp['data_resposta'] = pd.to_datetime(df_resp['data_resposta'], errors='coerce')
+
 # Tabs
 aba1, aba2, aba3 = st.tabs(["Solicitações", "Respostas", "Análises Estratégicas"])
 
@@ -67,6 +71,12 @@ with aba1:
 # --- ABA 2: RESPOSTAS ---
 with aba2:
     st.subheader("Respostas Comerciais")
+
+    if 'respondido_por' in df_resp.columns:
+        st.markdown("### Top 5 que mais responderam")
+        top_respondentes = df_resp['respondido_por'].value_counts().head(5)
+        st.bar_chart(top_respondentes)
+
     st.dataframe(df_resp)
 
     st.markdown("### Gráfico de Status das Respostas")
