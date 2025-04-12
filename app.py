@@ -3,6 +3,8 @@ import pandas as pd
 import mysql.connector
 from dotenv import load_dotenv
 import os
+import re
+from streamlit import markdown
 
 # Carrega as variáveis do arquivo .env
 load_dotenv()
@@ -25,6 +27,33 @@ def carregar_dados():
     conn.close()
     return solicitacoes, respostas
 
+# Personalização de tema via markdown inline
+st.markdown("""
+    <style>
+        body {
+            background-color: #f5e4c4;
+        }
+        .main {
+            background-color: #fffbe6;
+        }
+        h1, h2, h3, h4 {
+            color: #231f1e;
+        }
+        .stButton>button {
+            background-color: #50b13d;
+            color: white;
+            border: None;
+            border-radius: 6px;
+        }
+        .stButton>button:hover {
+            background-color: #72cb3e;
+        }
+        .stMetricLabel, .stMetricValue {
+            color: #231f1e;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 # Layout do Streamlit
 st.set_page_config(page_title="Dashboard Pedidos WhatsApp", layout="wide")
 st.title("📊 Dashboard de Pedidos - WhatsApp")
@@ -45,9 +74,7 @@ mapa_compradores = {
 df_solic["comprador"] = df_solic["comprador"].str.strip()
 df_solic["comprador"] = df_solic["comprador"].map(mapa_compradores).fillna(df_solic["comprador"])
 
-# Normalizar colunas de loja e motivo para consistência de análise
-import re
-
+# Função para normalizar nome das lojas
 def normalizar_loja(valor):
     if isinstance(valor, str):
         match = re.search(r'\d+', valor)
@@ -56,8 +83,8 @@ def normalizar_loja(valor):
             return f'LOJA {numero:02d}'
     return valor
 
+# Normalizar colunas de loja e motivo para consistência de análise
 df_solic['loja'] = df_solic['loja'].apply(normalizar_loja)
-
 df_solic['motivo'] = (
     df_solic['motivo']
     .str.strip()
