@@ -46,7 +46,18 @@ df_solic["comprador"] = df_solic["comprador"].str.strip()
 df_solic["comprador"] = df_solic["comprador"].map(mapa_compradores).fillna(df_solic["comprador"])
 
 # Normalizar colunas de loja e motivo para consistência de análise
-df_solic['loja'] = df_solic['loja'].str.strip().str.upper()
+import re
+
+def normalizar_loja(valor):
+    if isinstance(valor, str):
+        match = re.search(r'\d+', valor)
+        if match:
+            numero = int(match.group())
+            return f'LOJA {numero:02d}'
+    return valor
+
+df_solic['loja'] = df_solic['loja'].apply(normalizar_loja)
+
 df_solic['motivo'] = (
     df_solic['motivo']
     .str.strip()
