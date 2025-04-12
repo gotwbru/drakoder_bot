@@ -6,6 +6,8 @@ import os
 import re
 from streamlit import markdown
 
+st.set_page_config(page_title="Dashboard Pedidos WhatsApp", layout="wide")
+
 # Carrega as variáveis do arquivo .env
 load_dotenv()
 
@@ -55,7 +57,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Layout do Streamlit
-st.set_page_config(page_title="Dashboard Pedidos WhatsApp", layout="wide")
 st.title("📊 Dashboard de Pedidos - WhatsApp")
 
 # Carregar dados
