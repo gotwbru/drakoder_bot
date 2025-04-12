@@ -43,6 +43,7 @@ mapa_compradores = {
 }
 
 # Substitui os valores na coluna "comprador"
+df_solic["comprador"] = df_solic["comprador"].str.strip()  # remove espaços
 df_solic["comprador"] = df_solic["comprador"].map(mapa_compradores).fillna(df_solic["comprador"])
 
 
