@@ -33,6 +33,19 @@ st.title("📊 Dashboard de Pedidos - WhatsApp")
 # Carregar dados
 df_solic, df_resp = carregar_dados()
 
+# Mapeia número do WhatsApp para nomes reais
+mapa_compradores = {
+    "@554796768889": "Wesley",
+    "@554797424883": "Tere",
+    "@554792469843": "Jorge",
+    "@554784549969": "Eliane",
+    "@554799043869": "Andreia"
+}
+
+# Substitui os valores na coluna "comprador"
+df_solic["comprador"] = df_solic["comprador"].map(mapa_compradores).fillna(df_solic["comprador"])
+
+
 # Garantir que data_solicitacao esteja no formato datetime
 if 'data_solicitacao' in df_solic.columns:
     df_solic['data_solicitacao'] = pd.to_datetime(df_solic['data_solicitacao'], errors='coerce')
