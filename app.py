@@ -2,16 +2,20 @@
 import streamlit as st
 import pandas as pd
 import mysql.connector
-from datetime import datetime
+from dotenv import load_dotenv
+import os
 
-# Função para conectar ao banco de dados
+# Carrega as variáveis do arquivo .env
+load_dotenv()
+
+# Função para conectar ao banco
 def conectar():
     return mysql.connector.connect(
-        host="tramway.proxy.rlwy.net",
-        port=30416,
-        user="root",
-        password="xCAHyhwDrRGrVagpjzSjrrulSFSMdNby",
-        database="pedidos_whatsapp"  # <-- atualize aqui!
+        host=os.getenv("DB_HOST"),
+        port=int(os.getenv("DB_PORT")),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME")
     )
     
 # Função para carregar dados
