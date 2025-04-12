@@ -45,6 +45,20 @@ mapa_compradores = {
 df_solic["comprador"] = df_solic["comprador"].str.strip()
 df_solic["comprador"] = df_solic["comprador"].map(mapa_compradores).fillna(df_solic["comprador"])
 
+# Normalizar colunas de loja e motivo para consistência de análise
+df_solic['loja'] = df_solic['loja'].str.strip().str.upper()
+df_solic['motivo'] = (
+    df_solic['motivo']
+    .str.strip()
+    .str.lower()
+    .replace({
+        'itens sem pedido': 'item sem pedido',
+        'item sem pedido.': 'item sem pedido',
+        'produto não encontrado': 'produto nao encontrado',
+        'item não puxando cadastro': 'item nao puxando cadastro'
+    })
+)
+
 # Garantir que datas estejam no formato datetime
 df_solic['data_solicitacao'] = pd.to_datetime(df_solic['data_solicitacao'], errors='coerce')
 df_resp['data_resposta'] = pd.to_datetime(df_resp['data_resposta'], errors='coerce')
