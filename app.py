@@ -35,11 +35,11 @@ df_solic, df_resp = carregar_dados()
 
 # Mapeia número do WhatsApp para nomes reais
 mapa_compradores = {
-    "@554796768889": "Wesley",
-    "@554797424883": "Tere",
-    "@554792469843": "Jorge",
-    "@554784549969": "Eliane",
-    "@554799043869": "Andreia"
+    "@554799043869": "Andreia Comercial",
+    "@554792469843": "Jorge Comercial",
+    "@554797424883": "Tere Producao",
+    "@554796768889": "Wesley FLV",
+    "@554784549969": "Eliane Comercial"
 }
 
 # Substitui os valores na coluna "comprador"
