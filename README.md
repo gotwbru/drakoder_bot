@@ -12,6 +12,10 @@ Este é um projeto de dashboard interativo para acompanhamento de solicitações
   - **Respostas**: Lista e top 5 respondentes
   - **Análises Estratégicas**: Tempo de resposta, % respondido, lojas e motivos mais frequentes
 
+## 🌐 Acesse o Dashboard Online
+Acesse a versão ao vivo na nuvem:
+👉 [https://drakoderbot.streamlit.app/](https://drakoderbot.streamlit.app/)
+
 ## 🚀 Tecnologias utilizadas
 - [Streamlit](https://streamlit.io/) — para o frontend interativo
 - [Python 3.12](https://www.python.org/)
