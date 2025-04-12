@@ -7,10 +7,11 @@ from datetime import datetime
 # Função para conectar ao banco de dados
 def conectar():
     return mysql.connector.connect(
-        host='localhost',
-        user='root',
-        password='cpd2025',
-        database='pedidos_whatsapp'
+        host="tramway.proxy.rlwy.net",
+        port=30416,
+        user="root",
+        password="xCAHyhwDrRGrVagpjzSjrrulSFSMdNby",
+        database="pedidos_whatsapp"  # <-- atualize aqui!
     )
     
 # Função para carregar dados
