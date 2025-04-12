@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import mysql.connector
@@ -17,7 +16,7 @@ def conectar():
         password=os.getenv("DB_PASSWORD"),
         database=os.getenv("DB_NAME")
     )
-    
+
 # Função para carregar dados
 def carregar_dados():
     conn = conectar()
@@ -43,18 +42,17 @@ mapa_compradores = {
 }
 
 # Substitui os valores na coluna "comprador"
-df_solic["comprador"] = df_solic["comprador"].str.strip()  # remove espaços
+df_solic["comprador"] = df_solic["comprador"].str.strip()
 df_solic["comprador"] = df_solic["comprador"].map(mapa_compradores).fillna(df_solic["comprador"])
 
+# Garantir que datas estejam no formato datetime
+df_solic['data_solicitacao'] = pd.to_datetime(df_solic['data_solicitacao'], errors='coerce')
+df_resp['data_resposta'] = pd.to_datetime(df_resp['data_resposta'], errors='coerce')
+df_solic['dia'] = df_solic['data_solicitacao'].dt.date
 
-# Garantir que data_solicitacao esteja no formato datetime
-if 'data_solicitacao' in df_solic.columns:
-    df_solic['data_solicitacao'] = pd.to_datetime(df_solic['data_solicitacao'], errors='coerce')
-    df_solic['dia'] = df_solic['data_solicitacao'].dt.date
-
-# Garantir que data_resposta esteja no formato datetime
-if 'data_resposta' in df_resp.columns:
-    df_resp['data_resposta'] = pd.to_datetime(df_resp['data_resposta'], errors='coerce')
+# Merge para análises
+df_merged = df_solic.merge(df_resp, left_on="id", right_on="solicitacao_id", suffixes=("_sol", "_resp"), how="left")
+df_merged['tempo_resposta'] = df_merged['data_resposta'] - df_merged['data_solicitacao']
 
 # Tabs
 aba1, aba2, aba3 = st.tabs(["Solicitações", "Respostas", "Análises Estratégicas"])
@@ -107,16 +105,30 @@ with aba2:
 with aba3:
     st.subheader("Métricas e Análises")
 
-    df_merged = pd.merge(df_solic, df_resp, on='nota_fiscal', how='left', suffixes=('_solic', '_resp'))
-    df_merged['tempo_resposta'] = pd.to_datetime(df_merged['data_resposta'], errors='coerce') - pd.to_datetime(df_merged['data_solicitacao'], errors='coerce')
-    df_merged['tempo_resposta'] = df_merged['tempo_resposta'].apply(lambda x: abs(x) if pd.notnull(x) else x)
-
     tempo_medio = df_merged['tempo_resposta'].dropna().mean()
-    st.metric("⏱️ Tempo médio de resposta", str(tempo_medio).split('.')[0] if not pd.isna(tempo_medio) else "N/A")
+    st.metric("⏱ Tempo médio de resposta", str(tempo_medio).split('.')[0] if not pd.isna(tempo_medio) else "N/A")
 
     sem_resposta = df_merged[df_merged['data_resposta'].isna()]
     st.metric("🔴 Solicitações sem resposta", len(sem_resposta))
 
+    perc = df_merged['data_resposta'].notnull().mean() * 100
+    st.metric("✅ Percentual respondido", f"{perc:.1f}%")
+
     st.markdown("### Solicitações por Dia")
     if 'dia' in df_solic:
         st.line_chart(df_solic.groupby('dia').size())
+
+    st.markdown("### Top Respondentes")
+    ranking = df_resp["respondido_por"].value_counts()
+    st.bar_chart(ranking)
+
+    st.markdown("### Motivos mais comuns")
+    motivos = df_solic["motivo"].value_counts()
+    st.bar_chart(motivos)
+
+    st.markdown("### Lojas com mais solicitações")
+    lojas = df_solic["loja"].value_counts()
+    st.bar_chart(lojas)
+
+st.sidebar.markdown("---")
+st.sidebar.caption("Dashboard desenvolvido por Bruna 💫")
