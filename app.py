@@ -4,9 +4,39 @@ import mysql.connector
 from dotenv import load_dotenv
 import os
 import re
-from streamlit import markdown
 
+# Set page config deve ser o primeiro comando Streamlit
 st.set_page_config(page_title="Dashboard Pedidos WhatsApp", layout="wide")
+
+# Aplica tema personalizado via CSS
+st.markdown("""
+    <style>
+        body {
+            background-color: #f5e4c4;
+        }
+        .main {
+            background-color: #fffbe6;
+        }
+        h1, h2, h3, h4, .stTextInput>label, .stSelectbox>label {
+            color: #231f1e;
+        }
+        .stButton>button {
+            background-color: #50b13d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+        }
+        .stButton>button:hover {
+            background-color: #72cb3e;
+        }
+        .stMetricLabel, .stMetricValue {
+            color: #231f1e;
+        }
+        .stDataFrame table {
+            background-color: white;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 # Carrega as variáveis do arquivo .env
 load_dotenv()
@@ -29,34 +59,6 @@ def carregar_dados():
     conn.close()
     return solicitacoes, respostas
 
-# Personalização de tema via markdown inline
-st.markdown("""
-    <style>
-        body {
-            background-color: #f5e4c4;
-        }
-        .main {
-            background-color: #fffbe6;
-        }
-        h1, h2, h3, h4 {
-            color: #231f1e;
-        }
-        .stButton>button {
-            background-color: #50b13d;
-            color: white;
-            border: None;
-            border-radius: 6px;
-        }
-        .stButton>button:hover {
-            background-color: #72cb3e;
-        }
-        .stMetricLabel, .stMetricValue {
-            color: #231f1e;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-# Layout do Streamlit
 st.title("📊 Dashboard de Pedidos - WhatsApp")
 
 # Carregar dados
