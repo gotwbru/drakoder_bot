@@ -1,15 +1,21 @@
+
 import json
 import time
 import mysql.connector
 from datetime import datetime
 import os
+from dotenv import load_dotenv
+
+# Carrega as variáveis do arquivo .env
+load_dotenv()
 
 # Configuração do banco de dados
 DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': 'cpd2025',
-    'database': 'pedidos_whatsapp'
+    'host': os.getenv("DB_HOST"),
+    'port': int(os.getenv("DB_PORT")),
+    'user': os.getenv("DB_USER"),
+    'password': os.getenv("DB_PASSWORD"),
+    'database': os.getenv("DB_NAME")
 }
 
 # Caminho do arquivo JSON
@@ -62,7 +68,6 @@ def processar_mensagens():
     cursor = conn.cursor()
 
     for item in mensagens:
-        # Verifica e converte string JSON para dict
         if isinstance(item, str):
             try:
                 item = json.loads(item)
@@ -77,7 +82,6 @@ def processar_mensagens():
         tipo = item.get('tipo')
         dados = item.get('dados', {})
 
-        # Limpa os campos
         dados = {k: limpar_texto(v) for k, v in dados.items()}
         dados['fornecedor_na_loja'] = normalizar_fornecedor_na_loja(dados.get('fornecedor_na_loja', ''))
 
@@ -91,11 +95,11 @@ def processar_mensagens():
             else:
                 data_solicitacao = datetime.now()
 
-            sql = """
+            sql = '''
                 INSERT INTO solicitacoes (
                     fornecedor, nota_fiscal, loja, motivo, comprador, fornecedor_na_loja, data_solicitacao
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """
+            '''
             valores = (
                 dados.get('fornecedor', ''),
                 dados.get('nota_fiscal', ''),
@@ -113,11 +117,11 @@ def processar_mensagens():
 
         elif tipo == 'resposta':
             try:
-                cursor.execute("""
+                cursor.execute('''
                     SELECT id FROM solicitacoes
                     WHERE nota_fiscal = %s
                     ORDER BY data_solicitacao DESC LIMIT 1
-                """, (dados.get('nota_fiscal'),))
+                ''', (dados.get('nota_fiscal'),))
                 resultado = cursor.fetchone()
                 solicitacao_id = resultado[0] if resultado else None
 
@@ -130,11 +134,11 @@ def processar_mensagens():
                 else:
                     data_resposta = datetime.now()
 
-                sql = """
+                sql = '''
                     INSERT INTO respostas (
                         nota_fiscal, status, data_resposta, solicitacao_id, respondido_por
                     ) VALUES (%s, %s, %s, %s, %s)
-                """
+                '''
                 valores = (
                     dados.get('nota_fiscal', ''),
                     dados.get('status', ''),
@@ -151,7 +155,6 @@ def processar_mensagens():
     cursor.close()
     conn.close()
 
-    # Limpa o arquivo após processar
     with open(ARQUIVO_JSON, 'w', encoding='utf-8') as f:
         json.dump([], f, indent=2)
     print("🧹 mensagens.json limpo após processamento.\n")
