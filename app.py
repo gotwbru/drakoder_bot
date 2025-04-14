@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import mysql.connector
@@ -100,7 +99,8 @@ df_solic['dia'] = df_solic['data_solicitacao'].dt.date
 df_merged = df_solic.merge(df_resp, left_on="id", right_on="solicitacao_id", suffixes=("_sol", "_resp"), how="left")
 df_merged["tempo_resposta"] = df_merged["data_resposta"] - df_merged["data_solicitacao"]
 
-aba1, aba2, aba3 = st.tabs(["Solicitações", "Respostas", "Análises Estratégicas"])
+# Criação das abas
+aba1, aba2, aba3, aba4 = st.tabs(["Solicitações", "Respostas", "Análises Estratégicas", "Notas sem Resposta"])
 
 with aba1:
     st.subheader("Solicitações Registradas")
@@ -172,8 +172,8 @@ with aba3:
     lojas = df_solic["loja"].value_counts()
     st.bar_chart(lojas)
 
-    # Tabela adicional: Notas sem resposta
-    st.markdown("### 📄 Notas sem Resposta")
+with aba4:
+    st.subheader("📄 Notas sem Resposta")
 
     df_sem_resposta = df_merged[df_merged['data_resposta'].isna()].copy()
     df_sem_resposta['tempo_sem_resposta'] = pd.Timestamp.now() - df_sem_resposta['data_solicitacao']
@@ -181,11 +181,11 @@ with aba3:
         lambda x: f"{x.days} dias e {x.seconds // 3600} horas"
     )
 
-    tabela = df_sem_resposta[[
-        'nota_fiscal', 'comprador', 'loja', 'data_solicitacao', 'tempo_sem_resposta'
-    ]].sort_values(by='data_solicitacao', ascending=False)
+    tabela = df_sem_resposta[[ 'nota_fiscal', 'comprador', 'loja', 'data_solicitacao', 'tempo_sem_resposta' ]].sort_values(
+        by='data_solicitacao', ascending=False
+    )
 
-    st.dataframe(tabela)
+    st.dataframe(tabela, use_container_width=True)
 
 st.sidebar.markdown("---")
 st.sidebar.caption("Dashboard desenvolvido por Bruna 💫")
