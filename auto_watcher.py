@@ -25,13 +25,11 @@ def conectar():
         print(f"❌ Erro de conexão com o banco: {err}")
         return None
 
-# Limpa espaços invisíveis e caracteres especiais ocultos
 def limpar_texto(valor):
     if isinstance(valor, str):
         return valor.replace('\xa0', ' ').replace('\u200b', '').strip()
     return valor
 
-# Garante que o campo 'fornecedor_na_loja' esteja 100% limpo e padronizado
 def normalizar_fornecedor_na_loja(valor):
     if not isinstance(valor, str):
         return valor
@@ -64,10 +62,22 @@ def processar_mensagens():
     cursor = conn.cursor()
 
     for item in mensagens:
+        # Verifica e converte string JSON para dict
+        if isinstance(item, str):
+            try:
+                item = json.loads(item)
+            except json.JSONDecodeError:
+                print(f"❌ Mensagem inválida (não é JSON): {item}")
+                continue
+
+        if not isinstance(item, dict):
+            print(f"⚠️ Item ignorado (não é dicionário): {item}")
+            continue
+
         tipo = item.get('tipo')
         dados = item.get('dados', {})
 
-        # Limpeza de todos os campos de texto
+        # Limpa os campos
         dados = {k: limpar_texto(v) for k, v in dados.items()}
         dados['fornecedor_na_loja'] = normalizar_fornecedor_na_loja(dados.get('fornecedor_na_loja', ''))
 
@@ -141,6 +151,7 @@ def processar_mensagens():
     cursor.close()
     conn.close()
 
+    # Limpa o arquivo após processar
     with open(ARQUIVO_JSON, 'w', encoding='utf-8') as f:
         json.dump([], f, indent=2)
     print("🧹 mensagens.json limpo após processamento.\n")
