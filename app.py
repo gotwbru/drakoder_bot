@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import mysql.connector
@@ -30,6 +29,13 @@ st.markdown("""
         .stDataFrame table {
             background-color: white;
         }
+        /* CSS extra para títulos */
+        .titulo-notas {
+            font-size: 1.2rem;
+            color: #231f1e;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -55,6 +61,7 @@ st.title("📊 Dashboard de Pedidos - WhatsApp")
 
 df_solic, df_resp = carregar_dados()
 
+# Padronizar nomes de quem respondeu
 df_resp['respondido_por'] = df_resp['respondido_por'].replace({
     'Wesley': 'Wesley FLV',
     'Jorge Eduardo Salvador': 'Jorge Comercial'
@@ -96,7 +103,13 @@ df_solic['data_solicitacao'] = pd.to_datetime(df_solic['data_solicitacao'], erro
 df_resp['data_resposta'] = pd.to_datetime(df_resp['data_resposta'], errors='coerce')
 df_solic['dia'] = df_solic['data_solicitacao'].dt.date
 
-df_merged = df_solic.merge(df_resp, left_on="id", right_on="solicitacao_id", suffixes=("_sol", "_resp"), how="left")
+df_merged = df_solic.merge(
+    df_resp,
+    left_on="id",
+    right_on="solicitacao_id",
+    suffixes=("_sol", "_resp"),
+    how="left"
+)
 df_merged["tempo_resposta"] = df_merged["data_resposta"] - df_merged["data_solicitacao"]
 
 aba1, aba2, aba3, aba4 = st.tabs(["Solicitações", "Respostas", "Análises Estratégicas", "Notas sem Resposta"])
@@ -163,9 +176,19 @@ with aba4:
     df_sem_resposta['tempo_sem_resposta'] = df_sem_resposta['tempo_sem_resposta'].apply(
         lambda x: f"{x.days} dias e {x.seconds // 3600} horas"
     )
-    tabela = df_sem_resposta[[ 'nota_fiscal_sol', 'comprador', 'loja', 'data_solicitacao', 'tempo_sem_resposta' ]].rename(
-        columns={'nota_fiscal_sol': 'Nota Fiscal'}
-    ).sort_values(by='data_solicitacao', ascending=False)
+    # Exibe o total de notas sem resposta
+    total_notas = len(df_sem_resposta)
+    st.markdown(f"<div class='titulo-notas'>Total de Notas sem Resposta: <strong>{total_notas}</strong></div>", unsafe_allow_html=True)
+    
+    # Cria a tabela incluindo o nome do fornecedor, se existir
+    if 'fornecedor' in df_sem_resposta.columns:
+        tabela = df_sem_resposta[[ 'nota_fiscal_sol', 'comprador', 'loja', 'fornecedor', 'data_solicitacao', 'tempo_sem_resposta' ]]
+        tabela = tabela.rename(columns={'nota_fiscal_sol': 'Nota Fiscal', 'fornecedor': 'Fornecedor'})
+    else:
+        tabela = df_sem_resposta[[ 'nota_fiscal_sol', 'comprador', 'loja', 'data_solicitacao', 'tempo_sem_resposta' ]]
+        tabela = tabela.rename(columns={'nota_fiscal_sol': 'Nota Fiscal'})
+    
+    tabela = tabela.sort_values(by='data_solicitacao', ascending=False)
     st.dataframe(tabela, use_container_width=True)
 
 st.sidebar.markdown("---")
