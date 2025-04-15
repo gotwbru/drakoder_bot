@@ -30,6 +30,23 @@ client.on('ready', () => {
     console.log(`🎯 Monitorando grupo: ${grupoAlvoId}`);
 });
 
+// Remove espaços invisíveis e normaliza texto
+function limparTexto(texto) {
+    return texto
+        .replace(/\u00a0/g, ' ')       // espaço não-quebrável
+        .replace(/\u200b/g, '')        // zero-width space
+        .replace(/\r/g, '')            // retorno de carro
+        .replace(/\t/g, '')            // tabulações
+        .replace(/\s+/g, ' ')          // múltiplos espaços
+        .trim();
+}
+
+// Função auxiliar para extrair valores com rótulo limpo
+function pegarValor(linhas, chave) {
+    const linha = linhas.find(l => limparTexto(l).toLowerCase().startsWith(limparTexto(chave).toLowerCase()));
+    return linha ? limparTexto(linha.replace(chave, '').trim()) : '';
+}
+
 // Salva uma mensagem no arquivo JSON
 function salvarMensagem(tipo, dados) {
     const arquivo = 'mensagens.json';
@@ -42,17 +59,6 @@ function salvarMensagem(tipo, dados) {
     mensagens.push({ tipo, dados });
     fs.writeFileSync(arquivo, JSON.stringify(mensagens, null, 2));
     console.log('📄 mensagens.json atualizado:', JSON.stringify(mensagens, null, 2));
-}
-
-// Função auxiliar para extrair valores com normalização
-function pegarValor(linhas, chave) {
-    const linha = linhas.find(l => removerEspacosInvisiveis(l).startsWith(removerEspacosInvisiveis(chave)));
-    return linha ? removerEspacosInvisiveis(linha.replace(chave, '').trim()) : '';
-}
-
-// Remove espaços invisíveis como \xa0 ou similares
-function removerEspacosInvisiveis(texto) {
-    return texto.replace(/\s+/g, ' ').replace(/\u00a0/g, ' ').trim();
 }
 
 // Extrai dados da solicitação
@@ -86,8 +92,8 @@ client.on('message', async (msg) => {
     if (msg.from !== grupoAlvoId) return; // Ignora se não for do grupo alvo
 
     const textoOriginal = msg.body.trim();
-    const textoPadronizado = textoOriginal.toLowerCase();
-    const remetente = msg._data.notifyName || msg._data.pushName || 'Desconhecido';
+    const textoPadronizado = limparTexto(textoOriginal.toLowerCase());
+    const remetente = msg._data?.notifyName || msg._data?.pushName || 'Desconhecido';
 
     if (textoPadronizado.startsWith('solicitação de pedido')) {
         const dados = extrairSolicitacao(textoOriginal);
@@ -98,7 +104,7 @@ client.on('message', async (msg) => {
         const dados = extrairResposta(textoOriginal, remetente);
         salvarMensagem('resposta', dados);
         console.log('📥 Resposta registrada:', dados);
-    }    
+    }
 });
 
 // Inicializa o bot

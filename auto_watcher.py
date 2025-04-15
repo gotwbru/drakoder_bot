@@ -1,4 +1,3 @@
-
 import json
 import time
 import mysql.connector
@@ -6,7 +5,7 @@ from datetime import datetime
 import os
 from dotenv import load_dotenv
 
-# Carrega as variáveis do arquivo .env
+# Carrega as variáveis do .env
 load_dotenv()
 
 # Configuração do banco de dados
@@ -18,12 +17,10 @@ DB_CONFIG = {
     'database': os.getenv("DB_NAME")
 }
 
-# Caminho do arquivo JSON
 ARQUIVO_JSON = 'mensagens.json'
-
-# Intervalo entre checagens (em segundos)
 INTERVALO = 5
 
+# Conecta ao banco
 def conectar():
     try:
         return mysql.connector.connect(**DB_CONFIG)
@@ -31,21 +28,28 @@ def conectar():
         print(f"❌ Erro de conexão com o banco: {err}")
         return None
 
+# Limpa texto e remove caracteres invisíveis
 def limpar_texto(valor):
     if isinstance(valor, str):
-        return valor.replace('\xa0', ' ').replace('\u200b', '').strip()
+        return valor.replace('\xa0', ' ') \
+                    .replace('\u200b', '') \
+                    .replace('\r', '') \
+                    .replace('\t', '') \
+                    .strip()
     return valor
 
+# Padroniza o campo fornecedor_na_loja
 def normalizar_fornecedor_na_loja(valor):
     if not isinstance(valor, str):
         return valor
-    valor = valor.replace('\xa0', ' ').replace('\u200b', '').strip().lower()
+    valor = valor.replace('\xa0', ' ').replace('\u200b', '').strip().casefold()
     if valor.startswith('sim'):
         return 'Sim'
     elif valor.startswith('não') or valor.startswith('nao'):
         return 'Não'
     return ''
 
+# Processa mensagens do JSON
 def processar_mensagens():
     if not os.path.exists(ARQUIVO_JSON):
         print("⚠️ Arquivo mensagens.json não encontrado.")
@@ -159,6 +163,7 @@ def processar_mensagens():
         json.dump([], f, indent=2)
     print("🧹 mensagens.json limpo após processamento.\n")
 
+# Início
 if __name__ == '__main__':
     print("🔁 Iniciando monitoramento de mensagens.json...")
     while True:
