@@ -4,6 +4,7 @@ import mysql.connector
 from dotenv import load_dotenv
 import os
 import re
+import unidecode
 
 st.set_page_config(page_title="Dashboard Pedidos WhatsApp", layout="wide")
 
@@ -29,7 +30,6 @@ st.markdown("""
         .stDataFrame table {
             background-color: white;
         }
-        /* CSS extra para títulos */
         .titulo-notas {
             font-size: 1.2rem;
             color: #231f1e;
@@ -57,15 +57,44 @@ def carregar_dados():
     conn.close()
     return solicitacoes, respostas
 
-st.title("📊 Dashboard de Pedidos - WhatsApp")
+def padronizar_texto(texto):
+    if pd.isna(texto):
+        return ""
+    texto = str(texto)
+    texto = unidecode.unidecode(texto)
+    texto = texto.lower().strip()
+    texto = re.sub(r'[^\w\s]', '', texto)
+    texto = re.sub(r'\s+', ' ', texto)
+    return texto
+
+st.title("Dashboard de Pedidos - WhatsApp")
 
 df_solic, df_resp = carregar_dados()
 
-# Padronizar nomes de quem respondeu
-df_resp['respondido_por'] = df_resp['respondido_por'].replace({
-    'Wesley': 'Wesley FLV',
-    'Jorge Eduardo Salvador': 'Jorge Comercial'
+# Padronizar campos de texto
+
+df_resp["status"] = df_resp["status"].apply(padronizar_texto).replace({
+    "feito": "Feito"
 })
+
+mapa_respondentes = {
+    'wesley': 'Wesley',
+    'Wesley': 'Wesley',
+    'wesley flv': 'Wesley',
+    'jorge eduardo salvador': 'Jorge',
+    'Jorge Eduardo Salvador': 'Jorge',
+    'jorge comercial': 'Jorge',
+    'andreia': 'Andreia',
+    'Andreia': 'Andreia',
+    'andreia comercial': 'Andreia',
+    'eliane felix': 'Eliane',
+    'Eliane Felix': 'Eliane',
+    'eliane comercial': 'Eliane',
+    'TERE': 'Tere',
+    'tere': 'Tere'
+}
+
+df_resp['respondido_por'] = df_resp['respondido_por'].apply(padronizar_texto).replace(mapa_respondentes)
 
 mapa_compradores = {
     "@554799043869": "Andreia Comercial",
@@ -87,17 +116,12 @@ def normalizar_loja(valor):
     return valor
 
 df_solic['loja'] = df_solic['loja'].apply(normalizar_loja)
-df_solic['motivo'] = (
-    df_solic['motivo']
-    .str.strip()
-    .str.lower()
-    .replace({
-        'itens sem pedido': 'item sem pedido',
-        'item sem pedido.': 'item sem pedido',
-        'produto não encontrado': 'produto nao encontrado',
-        'item não puxando cadastro': 'item nao puxando cadastro'
-    })
-)
+df_solic['motivo'] = df_solic['motivo'].apply(padronizar_texto).replace({
+    'itens sem pedido': 'item sem pedido',
+    'item sem pedido': 'item sem pedido',
+    'produto nao encontrado': 'produto nao encontrado',
+    'item nao puxando cadastro': 'item nao puxando cadastro'
+})
 
 df_solic['data_solicitacao'] = pd.to_datetime(df_solic['data_solicitacao'], errors='coerce')
 df_resp['data_resposta'] = pd.to_datetime(df_resp['data_resposta'], errors='coerce')
@@ -151,11 +175,11 @@ with aba2:
 with aba3:
     st.subheader("Métricas e Análises")
     tempo_medio = df_merged["tempo_resposta"].dropna().mean()
-    st.metric("⏱ Tempo médio de resposta", str(tempo_medio).split(".")[0] if not pd.isna(tempo_medio) else "N/A")
+    st.metric("Tempo médio de resposta", str(tempo_medio).split(".")[0] if not pd.isna(tempo_medio) else "N/A")
     sem_resposta = df_merged[df_merged["data_resposta"].isna()]
-    st.metric("🔴 Solicitações sem resposta", len(sem_resposta))
+    st.metric("Solicitações sem resposta", len(sem_resposta))
     perc = df_merged["data_resposta"].notnull().mean() * 100
-    st.metric("✅ Percentual respondido", f"{perc:.1f}%")
+    st.metric("Percentual respondido", f"{perc:.1f}%")
     st.markdown("### Solicitações por Dia")
     if "dia" in df_solic:
         st.line_chart(df_solic.groupby("dia").size())
@@ -170,26 +194,24 @@ with aba3:
     st.bar_chart(lojas)
 
 with aba4:
-    st.subheader("📄 Notas sem Resposta")
+    st.subheader("Notas sem Resposta")
     df_sem_resposta = df_merged[df_merged['data_resposta'].isna()].copy()
     df_sem_resposta['tempo_sem_resposta'] = pd.Timestamp.now() - df_sem_resposta['data_solicitacao']
     df_sem_resposta['tempo_sem_resposta'] = df_sem_resposta['tempo_sem_resposta'].apply(
         lambda x: f"{x.days} dias e {x.seconds // 3600} horas"
     )
-    # Exibe o total de notas sem resposta
     total_notas = len(df_sem_resposta)
     st.markdown(f"<div class='titulo-notas'>Total de Notas sem Resposta: <strong>{total_notas}</strong></div>", unsafe_allow_html=True)
-    
-    # Cria a tabela incluindo o nome do fornecedor, se existir
+
     if 'fornecedor' in df_sem_resposta.columns:
         tabela = df_sem_resposta[[ 'nota_fiscal_sol', 'comprador', 'loja', 'fornecedor', 'data_solicitacao', 'tempo_sem_resposta' ]]
         tabela = tabela.rename(columns={'nota_fiscal_sol': 'Nota Fiscal', 'fornecedor': 'Fornecedor'})
     else:
         tabela = df_sem_resposta[[ 'nota_fiscal_sol', 'comprador', 'loja', 'data_solicitacao', 'tempo_sem_resposta' ]]
         tabela = tabela.rename(columns={'nota_fiscal_sol': 'Nota Fiscal'})
-    
+
     tabela = tabela.sort_values(by='data_solicitacao', ascending=False)
     st.dataframe(tabela, use_container_width=True)
 
 st.sidebar.markdown("---")
-st.sidebar.caption("Dashboard desenvolvido por Bruna 💫")
+st.sidebar.caption("Dashboard desenvolvido por Bruna")
