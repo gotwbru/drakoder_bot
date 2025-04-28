@@ -1,22 +1,30 @@
 @echo off
-title Encerrando Sistema de Pedidos WhatsApp
-color 0C
+chcp 65001 >nul
+cls
+echo ==================================================
+echo 🛑 Encerrando o Projeto - Dashboard Pedidos...
+echo ==================================================
 
-echo ============================================
-echo        ENCERRANDO SISTEMA DE PEDIDOS        
-echo ============================================
-
+:: Encerrar auto_watcher.py e outros scripts Python
 echo.
-echo ⛔ Encerrando Bot do WhatsApp (node.exe)...
-taskkill /f /im node.exe >nul 2>&1
-
-echo ⛔ Encerrando Auto Watcher (python.exe)...
+echo ⏳ Encerrando processos Python...
 taskkill /f /im python.exe >nul 2>&1
+if %errorlevel% equ 0 (
+    echo ✅ Processos Python encerrados com sucesso.
+) else (
+    echo ⚠️ Nenhum processo Python encontrado ou falha no encerramento.
+)
 
-echo ⛔ Encerrando Dashboard (streamlit.exe)...
+:: Encerrar Streamlit Dashboard
+echo.
+echo ⏳ Encerrando Dashboard Streamlit...
 taskkill /f /im streamlit.exe >nul 2>&1
+if %errorlevel% equ 0 (
+    echo ✅ Dashboard Streamlit encerrado com sucesso.
+) else (
+    echo ⚠️ Nenhuma instância do Streamlit encontrada ou falha no encerramento.
+)
 
 echo.
-echo ✅ Todos os processos foram encerrados com sucesso.
-echo ============================================
+echo 🎯 Todos os processos foram finalizados.
 pause

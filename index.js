@@ -14,7 +14,7 @@ const compradores = {
     "554796768889": "Wesley"
 };
 
-// Inicia o cliente com autenticação local
+// Inicializa o cliente WhatsApp com autenticação local
 const client = new Client({
     authStrategy: new LocalAuth()
 });
@@ -26,42 +26,48 @@ client.on('qr', (qr) => {
 
 // Confirma quando está pronto
 client.on('ready', () => {
-    console.log('✅ Bot conectado e rodando!');
-    console.log(`🎯 Monitorando grupo: ${grupoAlvoId}`);
+    console.log('============================================');
+    console.log('✅🤖 BOT WhatsApp Conectado e Funcionando!');
+    console.log(`👁️  Monitorando Grupo: ${grupoAlvoId}`);
+    console.log('============================================');
 });
 
 // Remove espaços invisíveis e normaliza texto
 function limparTexto(texto) {
     return texto
-        .replace(/\u00a0/g, ' ')       // espaço não-quebrável
-        .replace(/\u200b/g, '')        // zero-width space
-        .replace(/\r/g, '')            // retorno de carro
-        .replace(/\t/g, '')            // tabulações
-        .replace(/\s+/g, ' ')          // múltiplos espaços
+        .replace(/\u00a0/g, ' ')
+        .replace(/\u200b/g, '')
+        .replace(/\r/g, '')
+        .replace(/\t/g, '')
+        .replace(/\s+/g, ' ')
         .trim();
 }
 
-// Função auxiliar para extrair valores com rótulo limpo
+// Extrai valor das linhas com chave especificada
 function pegarValor(linhas, chave) {
     const linha = linhas.find(l => limparTexto(l).toLowerCase().startsWith(limparTexto(chave).toLowerCase()));
     return linha ? limparTexto(linha.replace(chave, '').trim()) : '';
 }
 
-// Salva uma mensagem no arquivo JSON
+// Salva mensagens no arquivo JSON com tratamento de erro
 function salvarMensagem(tipo, dados) {
     const arquivo = 'mensagens.json';
     let mensagens = [];
 
-    if (fs.existsSync(arquivo)) {
-        mensagens = JSON.parse(fs.readFileSync(arquivo));
-    }
+    try {
+        if (fs.existsSync(arquivo)) {
+            mensagens = JSON.parse(fs.readFileSync(arquivo, 'utf8'));
+        }
 
-    mensagens.push({ tipo, dados });
-    fs.writeFileSync(arquivo, JSON.stringify(mensagens, null, 2));
-    console.log('📄 mensagens.json atualizado:', JSON.stringify(mensagens, null, 2));
+        mensagens.push({ tipo, dados });
+        fs.writeFileSync(arquivo, JSON.stringify(mensagens, null, 2));
+        console.log('📄 mensagens.json atualizado com sucesso.');
+    } catch (erro) {
+        console.error('❌ Erro ao atualizar mensagens.json:', erro);
+    }
 }
 
-// Extrai dados da solicitação
+// Extrai dados da solicitação com validação básica
 function extrairSolicitacao(texto) {
     const linhas = texto.split('\n').map(l => l.trim());
     let compradorRaw = pegarValor(linhas, 'Comprador:').replace('@', '').trim();
@@ -77,7 +83,7 @@ function extrairSolicitacao(texto) {
     };
 }
 
-// Extrai dados da resposta
+// Extrai dados da resposta com validação básica
 function extrairResposta(texto, remetente) {
     const linhas = texto.split('\n').map(l => l.trim());
     return {
@@ -87,23 +93,36 @@ function extrairResposta(texto, remetente) {
     };
 }
 
-// Lê mensagens recebidas
+// Recebe mensagens e realiza ações apropriadas
 client.on('message', async (msg) => {
-    if (msg.from !== grupoAlvoId) return; // Ignora se não for do grupo alvo
+    if (msg.from !== grupoAlvoId) return;
 
     const textoOriginal = msg.body.trim();
     const textoPadronizado = limparTexto(textoOriginal.toLowerCase());
-    const remetente = msg._data?.notifyName || msg._data?.pushName || 'Desconhecido';
+
+    const contato = await msg.getContact();
+    const remetente = contato.pushname || contato.number || 'Desconhecido';
+
+    console.log(`📨 Mensagem recebida de ${remetente}:`, textoOriginal);
 
     if (textoPadronizado.startsWith('solicitação de pedido')) {
         const dados = extrairSolicitacao(textoOriginal);
+        if (!dados.fornecedor || !dados.nota_fiscal) {
+            console.warn('⚠️ Solicitação inválida:', textoOriginal);
+            return;
+        }
         salvarMensagem('solicitacao', dados);
         console.log('📥 Solicitação registrada:', dados);
-    }
-    else if (textoPadronizado.startsWith('resposta comercial')) {
+    } else if (textoPadronizado.startsWith('resposta comercial')) {
         const dados = extrairResposta(textoOriginal, remetente);
+        if (!dados.nota_fiscal || !dados.status) {
+            console.warn('⚠️ Resposta inválida:', textoOriginal);
+            return;
+        }
         salvarMensagem('resposta', dados);
         console.log('📥 Resposta registrada:', dados);
+    } else {
+        console.log('ℹ️ Mensagem ignorada: Não corresponde ao formato esperado.');
     }
 });
 

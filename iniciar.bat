@@ -1,29 +1,63 @@
 @echo off
-title Iniciar Sistema de Pedidos WhatsApp
-color 0A
-echo ============================================
-echo         INICIANDO SISTEMA DE PEDIDOS        
-echo ============================================
+chcp 65001 >nul
+cls
+echo ==================================================
+echo 🚀 Inicializando Dashboard Pedidos
+echo ==================================================
 
-REM Iniciar Bot WhatsApp
+:: Navegar até a pasta do projeto
 echo.
-echo 🚀 Iniciando Bot do WhatsApp...
-start "Bot WhatsApp" cmd /k "node index.js"
-timeout /t 2 >nul
+echo 📁 Acessando diretório do projeto...
+cd /d "C:\Users\bruna\OneDrive\Documentos\PROJETO PEDIDOS\protipo-pedido"
+if %errorlevel% neq 0 (
+    echo ❌ Erro: Diretório não encontrado.
+    pause
+    exit /b
+)
 
-REM Iniciar Watcher Python
+:: Ativar ambiente virtual
 echo.
-echo 🔄 Iniciando Auto Watcher (Python)...
-start "Auto Watcher" cmd /k "python auto_watcher.py"
-timeout /t 2 >nul
+echo 🐍 Ativando ambiente virtual...
+call ".venv\Scripts\activate.bat"
+if %errorlevel% neq 0 (
+    echo ❌ Erro: Não foi possível ativar o ambiente virtual.
+    pause
+    exit /b
+)
 
-REM Iniciar Dashboard
+:: Rodar inserção de mensagens no banco
 echo.
-echo 📊 Iniciando Dashboard (Streamlit)...
-start "Dashboard" cmd /k "streamlit run app.py"
-timeout /t 2 >nul
+echo 🗂️ Inserindo novas mensagens no banco de dados...
+python inserir_mensagens.py
+if %errorlevel% neq 0 (
+    echo ❌ Erro: Falha ao inserir mensagens no banco.
+    pause
+    exit /b
+)
+echo ✅ Mensagens inseridas com sucesso.
+
+:: Rodar auto_watcher.py em paralelo
+echo.
+echo 🔍 Iniciando Auto Watcher em paralelo...
+start cmd /k "python auto_watcher.py"
+if %errorlevel% neq 0 (
+    echo ❌ Erro: Falha ao iniciar Auto Watcher.
+    pause
+    exit /b
+)
+echo ✅ Auto Watcher iniciado com sucesso.
+
+:: Rodar o dashboard com Streamlit
+echo.
+echo 📊 Abrindo Dashboard Streamlit...
+start cmd /k "streamlit run app.py"
+if %errorlevel% neq 0 (
+    echo ❌ Erro: Falha ao abrir Dashboard Streamlit.
+    pause
+    exit /b
+)
+echo ✅ Dashboard inicializado com sucesso.
 
 echo.
-echo ✅ Todos os componentes foram iniciados.
-echo ============================================
+echo 🎉 Todos os processos foram iniciados!
 pause
